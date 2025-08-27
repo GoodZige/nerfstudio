@@ -73,7 +73,7 @@ def get_vocab_tree() -> Path:
     vocab_tree_filename = Path(appdirs.user_data_dir("nerfstudio")) / "vocab_tree.fbow"
 
     if not vocab_tree_filename.exists():
-        r = requests.get("http://10.126.13.216:9000/root/firmware/vocab_tree_faiss_flickr100K_words256K.bin", stream=True)
+        r = requests.get("https://demuc.de/colmap/vocab_tree_flickr100K_words32K.bin", stream=True)
         vocab_tree_filename.parent.mkdir(parents=True, exist_ok=True)
         with open(vocab_tree_filename, "wb") as f:
             total_length = r.headers.get("content-length")
