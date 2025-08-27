@@ -188,7 +188,12 @@ def convert_video_to_images(
         for dir in downscale_dirs:
             dir.mkdir(parents=True, exist_ok=True)
 
-        # We will construct the split size and outputs later per-frame based on whether [out0] is needed
+        downscale_chain = (
+            f"split={num_downscales + 1}"
+            + "".join([f"[t{i}]" for i in range(num_downscales + 1)])
+            + ";"
+            + ";".join(downscale_chains)
+        )
 
         ffmpeg_cmd += " -vsync vfr"
 
@@ -207,7 +212,7 @@ def convert_video_to_images(
             ffmpeg_cmd += " -pix_fmt bgr8"
             select_cmd = ""
 
-        downscale_cmd = f' -filter_complex "{select_cmd}{crop_cmd}"' + "".join(
+        downscale_cmd = f' -filter_complex "{select_cmd}{crop_cmd}{downscale_chain}"' + "".join(
             [f' -map "[out{i}]" "{downscale_paths[i]}"' for i in range(num_downscales + 1)]
         )
 
