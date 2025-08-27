@@ -230,6 +230,7 @@ def run_colmap(
             CONSOLE.print("[bold yellow]Warning: No 3D points to estimate normalization. Skipping normalization.")
         else:
             import numpy as np  # local import to avoid overhead unless needed
+
             pts = np.array([p.xyz for p in ptid_to_info.values()], dtype=np.float64)
             if normalization_center == "mean":
                 Cx, Cy, Cz = pts.mean(axis=0).tolist()

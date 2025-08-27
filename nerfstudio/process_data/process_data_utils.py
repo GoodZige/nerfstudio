@@ -342,12 +342,18 @@ def copy_images_list(
             select_cmd = f"[0:v]scale=iw*{upscale_factor}:ih*{upscale_factor}:flags=neighbor[upscaled];[upscaled]"
 
         downscale_cmd = f' -filter_complex "{select_cmd}{crop_cmd}"' + "".join(
-            [f' -map "[out{i}]" "{downscale_dirs[i] / f"{framename}{copied_image_paths[0].suffix}"}"' for i in range(num_downscales + 1)]
+            [
+                f' -map "[out{i}]" "{downscale_dirs[i] / f"{framename}{copied_image_paths[0].suffix}"}"'
+                for i in range(num_downscales + 1)
+            ]
         )
 
         # Decide whether to overwrite base images ([out0])
         need_transform_base = (
-            crop_border_pixels is not None or (crop_factor != (0.0, 0.0, 0.0, 0.0)) or upscale_factor is not None or not same_dimensions
+            crop_border_pixels is not None
+            or (crop_factor != (0.0, 0.0, 0.0, 0.0))
+            or upscale_factor is not None
+            or not same_dimensions
         )
 
         # Build filter graph: if base not needed, split only into downscaled outputs [out1..outN]; otherwise include [out0]
@@ -355,9 +361,7 @@ def copy_images_list(
             if need_transform_base:
                 split_targets = [f"[t{i}]" for i in range(num_downscales + 1)]  # include base
                 chains = ";".join(downscale_chains)  # [out0..outN]
-                downscale_graph = (
-                    f"split={num_downscales + 1}" + "".join(split_targets) + ";" + chains
-                )
+                downscale_graph = f"split={num_downscales + 1}" + "".join(split_targets) + ";" + chains
                 downscale_cmd = f' -filter_complex "{select_cmd}{crop_cmd}{downscale_graph}"'
                 mapping_entries = [
                     f' -map "[out0]" -map_metadata 0 -q:v 2 "{downscale_dirs[0] / f"{framename}{copied_image_paths[0].suffix}"}"'
@@ -371,10 +375,10 @@ def copy_images_list(
                 # Only emit downscaled outputs; reindex to start from out0 to avoid gaps and empty maps
                 # Build chains for i=1..N, then relabel [out{i}] -> [out{i-1}] via mapping labels
                 split_targets = [f"[t{i}]" for i in range(1, num_downscales + 1)]
-                chains = ";".join([f"[t{i}]scale=iw/{2**i}:ih/{2**i}{nn_flag}[out{i-1}]" for i in range(1, num_downscales + 1)])
-                downscale_graph = (
-                    f"split={num_downscales}" + "".join(split_targets) + ";" + chains
+                chains = ";".join(
+                    [f"[t{i}]scale=iw/{2**i}:ih/{2**i}{nn_flag}[out{i - 1}]" for i in range(1, num_downscales + 1)]
                 )
+                downscale_graph = f"split={num_downscales}" + "".join(split_targets) + ";" + chains
                 downscale_cmd = f' -filter_complex "{select_cmd}{crop_cmd}{downscale_graph}"'
                 mapping_entries = []
                 for i in range(num_downscales):

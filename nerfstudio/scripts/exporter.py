@@ -687,11 +687,14 @@ class ExportGaussianSplat(Exporter):
                     # Normalize quaternion
                     q = q / (np.linalg.norm(q) + 1e-12)
                     w, x, y, z = q
-                    R = np.array([
-                        [1 - 2*(y*y + z*z), 2*(x*y - z*w),     2*(x*z + y*w)],
-                        [2*(x*y + z*w),     1 - 2*(x*x + z*z), 2*(y*z - x*w)],
-                        [2*(x*z - y*w),     2*(y*z + x*w),     1 - 2*(x*x + y*y)],
-                    ], dtype=np.float64)
+                    R = np.array(
+                        [
+                            [1 - 2 * (y * y + z * z), 2 * (x * y - z * w), 2 * (x * z + y * w)],
+                            [2 * (x * y + z * w), 1 - 2 * (x * x + z * z), 2 * (y * z - x * w)],
+                            [2 * (x * z - y * w), 2 * (y * z + x * w), 1 - 2 * (x * x + y * y)],
+                        ],
+                        dtype=np.float64,
+                    )
                     t = np.array([tx, ty, tz], dtype=np.float64)
                     R_norm_inv = (R.T) / s0
                     t_norm_inv = -(R.T @ t) / s0
